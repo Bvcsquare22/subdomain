@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Doer — Challenge Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Cabinet+Grotesk:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --gold: #C9A87A;
+  --gold-light: #D4B98A;
+  --gold-dim: rgba(201,168,122,0.15);
+  --gold-border: rgba(201,168,122,0.25);
+  --black: #000000;
+  --dark: #0D0D0D;
+  --card: #161616;
+  --card2: #1E1E1E;
+  --card3: #252525;
+  --text: #FFFFFF;
+  --text-dim: #888888;
+  --text-mid: #BBBBBB;
+  --green: #4CAF72;
+  --red: #C0392B;
+}
+
+body {
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  padding: 16px;
+}
+
+.outer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 390px;
+}
+
+/* Progress dots */
+.progress-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.pdot {
+  width: 6px; height: 6px;
+  border-radius: 3px;
+  background: #333;
+  transition: all 0.3s ease;
+}
+.pdot.active { background: var(--gold); width: 20px; }
+.pdot.done { background: #444; }
+
+/* Phone */
+.phone {
+  width: 100%;
+  max-width: 390px;
+  background: var(--black);
+  border-radius: 44px;
+  border: 1px solid #222;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.8);
+  min-height: 780px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Status bar */
+.sbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px 8px;
+  flex-shrink: 0;
+}
+.sbar-time { color: var(--text); font-size: 15px; font-weight: 800; }
+.sbar-icons { color: var(--text-dim); font-size: 12px; display: flex; gap: 5px; align-items: center; }
+
+/* Screens */
+.screen {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.screen.active { display: flex; animation: slideIn 0.3s ease; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.scrollable {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scrollable::-webkit-scrollbar { display: none; }
+
+/* Nav */
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px 10px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.back {
+  background: #1A1A1A;
+  border: none;
+  color: var(--text);
+  font-size: 18px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-title { font-weight: 800; font-size: 16px; color: var(--text); }
+
+/* Bottom nav */
+.bnav {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 18px;
+  border-top: 1px solid #1A1A1A;
+  background: var(--black);
+  flex-shrink: 0;
+}
+.bni {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; font-size: 10px; color: var(--text-dim); cursor: pointer;
+}
+.bni.active { color: var(--gold); }
+.bni-icon { font-size: 18px; }
+
+/* ── SCREEN 1: Challenge Detail ── */
+.cr-banner {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(180deg, #8B0000 0%, #C0392B 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.cr-logo-wrap {
+  background: white;
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.cr-logo-text {
+  font-size: 11px; font-weight: 900; color: #C0392B; letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.cr-logo-big { font-size: 22px; font-weight: 900; color: #C0392B; line-height: 1; }
+.cr-chicken { font-size: 48px; position: absolute; right: 20px; bottom: 10px; }
+
+.challenge-title {
+  font-size: 22px; font-weight: 900; color: var(--text);
+  text-align: center; padding: 20px 20px 4px; line-height: 1.2;
+}
+
+.desc-card {
+  margin: 12px 16px;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid #222;
+}
+.desc-label { font-size: 12px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.desc-text { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin: 0 16px 16px;
+}
+.stat-box {
+  background: var(--card);
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-icon { font-size: 18px; margin-bottom: 6px; }
+.stat-val { font-size: 18px; font-weight: 900; color: var(--text); }
+.stat-lbl { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+.gold-btn {
+  margin: 0 16px 16px;
+  background: var(--gold);
+  border: none;
+  border-radius: 50px;
+  padding: 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: #000;
+  cursor: pointer;
+  width: calc(100% - 32px);
+  transition: opacity 0.2s;
+  letter-spacing: 0.3px;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+.gold-btn:active { opacity: 0.85; }
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0px rgba(201,168,122,0); }
+  50% { box-shadow: 0 0 18px rgba(201,168,122,0.55), 0 0 32px rgba(201,168,122,0.2); }
+}
+
+.demo-badge {
+  position: fixed;
+  top: 16px; right: 16px;
+  background: rgba(201,168,122,0.12);
+  border: 1px solid rgba(201,168,122,0.3);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 1px;
+  z-index: 999;
+}
+
+.loc-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 16px 16px;
+}
+.loc-box {
+  background: var(--card); border: 1px solid #222; border-radius: 14px; padding: 12px 14px;
+}
+.loc-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.loc-val { font-size: 14px; font-weight: 800; color: var(--text); }
+
+/* tab bar */
+.tab-bar {
+  display: flex; gap: 8px; margin: 0 16px 12px; flex-shrink: 0;
+}
+.tab {
+  background: #1A1A1A; border: none; border-radius: 50px;
+  padding: 8px 16px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab.active { background: white; color: #000; }
+
+/* ── SCREEN 2: Joined ── */
+.joined-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 32px 24px; gap: 20px;
+}
+.joined-icon { font-size: 72px; }
+.joined-title { font-size: 28px; font-weight: 900; color: var(--text); text-align: center; }
+.joined-sub { font-size: 14px; color: var(--text-dim); text-align: center; line-height: 1.5; }
+.joined-card {
+  width: 100%;
+  background: var(--card); border: 1px solid #222; border-radius: 16px; padding: 16px;
+}
+.joined-card-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+.jcr-label { font-size: 13px; color: var(--text-dim); }
+.jcr-val { font-size: 13px; font-weight: 800; color: var(--text); }
+.jcr-val.gold { color: var(--gold); }
+
+/* ── SCREEN 3: Tracking ── */
+.tracking-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: space-between;
+  padding: 32px 24px 0; background: #000;
+}
+.duration-label { font-size: 13px; letter-spacing: 3px; color: var(--text-dim); font-weight: 700; }
+.duration-time {
+  font-family: 'Space Mono', monospace;
+  font-size: 52px; color: var(--text); font-weight: 700;
+  letter-spacing: 2px; margin-top: 8px;
+}
+.steps-section { text-align: center; margin-top: 40px; }
+.steps-label { font-size: 13px; letter-spacing: 3px; color: var(--text-dim); font-weight: 700; margin-bottom: 16px; }
+.steps-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 64px; color: var(--gold); font-weight: 700;
+  transition: all 0.1s;
+  min-height: 80px; display: flex; align-items: center; justify-content: center;
+}
+.speed-pill {
+  background: #1A1A1A; border-radius: 50px; padding: 12px 24px;
+  font-size: 16px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px; margin-top: 48px;
+}
+.tracking-bottom { width: 100%; padding: 24px 0 0; }
+.pause-btn {
+  width: 100%; background: var(--gold-light); border: none;
+  border-radius: 50px; padding: 18px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800; font-size: 16px; color: #000; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+.ff-btn {
+  width: 100%; background: transparent; border: 1px solid #333;
+  border-radius: 50px; padding: 14px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 700; font-size: 13px; color: var(--text-dim); cursor: pointer;
+  margin-top: 10px; margin-bottom: 20px;
+}
+
+/* ── SCREEN 4: Leaderboard ── */
+.lb-banner {
+  height: 140px;
+  background: linear-gradient(180deg, #8B0000 0%, #6B0000 100%);
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 16px 20px;
+  flex-shrink: 0;
+}
+.lb-banner-title { font-size: 18px; font-weight: 900; color: white; line-height: 1.2; }
+
+.lb-tabs { display: flex; gap: 8px; padding: 14px 16px 8px; flex-shrink: 0; }
+.lb-tab {
+  background: transparent; border: none; border-radius: 50px;
+  padding: 8px 16px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.lb-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.lb-list { padding: 0 16px 16px; }
+.lb-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid #1A1A1A;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-medal {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; flex-shrink: 0;
+}
+.lb-medal.g { background: rgba(255,215,0,0.15); color: #FFD700; }
+.lb-medal.s { background: rgba(192,192,192,0.1); color: #C0C0C0; }
+.lb-medal.b { background: rgba(205,127,50,0.1); color: #CD7F32; }
+.lb-medal.n { background: #1A1A1A; color: var(--text-dim); font-size: 13px; }
+.lb-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #2A2A2A; display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 14px; color: var(--text-dim); flex-shrink: 0;
+}
+.lb-avatar.you { background: var(--gold-dim); color: var(--gold); border: 1.5px solid var(--gold-border); }
+.lb-name { flex: 1; font-weight: 700; font-size: 14px; color: var(--text); }
+.lb-name small { display: block; font-size: 11px; color: var(--text-dim); font-weight: 500; margin-top: 1px; }
+.lb-steps-wrap { text-align: right; }
+.lb-steps { font-size: 14px; font-weight: 800; color: var(--gold); }
+.lb-steps-lbl { font-size: 10px; color: var(--text-dim); }
+
+/* ── SCREEN 5: Complete ── */
+.complete-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; padding: 32px 24px; gap: 16px;
+}
+.complete-icon { font-size: 64px; }
+.complete-tag {
+  background: var(--gold-dim); border: 1px solid var(--gold-border);
+  border-radius: 20px; padding: 4px 14px;
+  font-size: 11px; color: var(--gold); font-weight: 800; letter-spacing: 0.5px;
+}
+.complete-title { font-size: 32px; font-weight: 900; color: var(--text); text-align: center; line-height: 1.1; }
+.complete-sub { font-size: 14px; color: var(--text-dim); text-align: center; }
+.complete-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;
+}
+.cs-box {
+  background: var(--card); border: 1px solid #222; border-radius: 14px;
+  padding: 16px; text-align: center;
+}
+.cs-val { font-size: 24px; font-weight: 900; color: var(--text); }
+.cs-val.gold { color: var(--gold); }
+.cs-lbl { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+/* ── SCREEN 6: Rewards ── */
+.reward-header {
+  padding: 4px 20px 16px; flex-shrink: 0;
+}
+.reward-page-title { font-size: 18px; font-weight: 900; color: var(--text); text-align: center; }
+
+.pts-card {
+  margin: 0 16px 16px;
+  background: var(--card); border: 1px solid #2A2A2A; border-radius: 16px;
+  padding: 16px; display: flex; align-items: center; gap: 14px;
+}
+.pts-badge {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--gold-dim); border: 2px solid var(--gold-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.pts-info { flex: 1; }
+.pts-label { font-size: 11px; color: var(--text-dim); margin-bottom: 2px; }
+.pts-val { font-size: 24px; font-weight: 900; color: var(--text); }
+.pts-week { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.pts-week span { color: var(--green); font-weight: 800; }
+
+.reward-tabs { display: flex; gap: 0; margin: 0 16px 14px; border-bottom: 1px solid #222; flex-shrink: 0; }
+.rtab {
+  background: transparent; border: none; border-bottom: 2px solid transparent;
+  padding: 8px 16px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--text-dim); cursor: pointer;
+  margin-bottom: -1px;
+}
+.rtab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.reward-list { padding: 0 16px 16px; }
+.reward-item {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); border: 1px solid #1E1E1E; border-radius: 16px;
+  padding: 14px; margin-bottom: 10px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.reward-item:hover { border-color: #333; }
+.reward-item-logo {
+  width: 52px; height: 52px; border-radius: 12px;
+  overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.reward-item-logo.cr { background: #C0392B; }
+.reward-item-logo.dom { background: white; }
+.reward-item-logo.pv { background: #1B4BDB; }
+.reward-brand { font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.5px; margin-bottom: 3px; }
+.reward-name { font-size: 15px; font-weight: 800; color: var(--text); }
+.reward-pts-row { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.reward-star { color: var(--gold); font-size: 12px; }
+.reward-pts-val { font-size: 13px; color: var(--text-dim); font-weight: 700; }
+
+/* ── SCREEN 7: Reward Detail ── */
+.rd-banner {
+  height: 160px;
+  background: linear-gradient(180deg, #8B0000, #6B0000);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; position: relative;
+}
+.rd-logo {
+  background: white; border-radius: 20px; padding: 12px 20px;
+  font-size: 13px; font-weight: 900; color: #C0392B; letter-spacing: 0.5px;
+}
+
+.rd-body { padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; }
+.rd-title { font-size: 22px; font-weight: 900; color: var(--text); }
+.rd-brand-tag { font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.5px; margin-bottom: 4px; }
+
+.rd-info-card {
+  background: var(--card); border: 1px solid #222; border-radius: 14px; padding: 14px;
+}
+.rd-info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1A1A1A; }
+.rd-info-row:last-child { border-bottom: none; }
+.rd-info-label { font-size: 13px; color: var(--text-dim); }
+.rd-info-val { font-size: 13px; font-weight: 800; color: var(--text); }
+.rd-info-val.gold { color: var(--gold); }
+
+.rd-notice {
+  background: rgba(201,168,122,0.08); border: 1px solid var(--gold-border);
+  border-radius: 12px; padding: 12px 14px;
+  font-size: 12px; color: var(--text-dim); line-height: 1.5;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.rd-notice-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+.reveal-btn {
+  margin: 0 0 20px;
+  background: var(--gold);
+  border: none; border-radius: 50px;
+  padding: 18px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800; font-size: 16px; color: #000; cursor: pointer;
+  width: 100%; transition: opacity 0.2s;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+.reveal-btn:active { opacity: 0.85; }
+
+/* ── QR MODAL ── */
+.qr-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none; align-items: flex-end;
+  z-index: 100; border-radius: 44px; overflow: hidden;
+}
+.qr-overlay.open { display: flex; animation: overlayIn 0.3s ease; }
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+.qr-sheet {
+  width: 100%; background: var(--dark);
+  border-radius: 28px 28px 0 0;
+  padding: 12px 24px 40px;
+  animation: sheetUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  border-top: 1px solid #2A2A2A;
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.qr-handle {
+  width: 36px; height: 4px; background: #333; border-radius: 2px;
+  margin: 0 auto 20px; cursor: pointer;
+}
+.qr-sheet-title { font-size: 13px; font-weight: 800; color: var(--text-dim); text-align: center; letter-spacing: 0.5px; margin-bottom: 4px; }
+.qr-brand { font-size: 11px; color: var(--gold); font-weight: 800; letter-spacing: 0.5px; text-align: center; margin-bottom: 20px; }
+
+.qr-box {
+  background: white; border-radius: 20px;
+  padding: 20px; margin: 0 auto 16px;
+  width: 200px; height: 200px;
+  display: flex; align-items: center; justify-content: center;
+}
+.qr-svg { width: 160px; height: 160px; }
+
+.qr-code-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px; font-weight: 700; color: var(--gold);
+  text-align: center; letter-spacing: 2px; margin-bottom: 4px;
+}
+.qr-outlet { font-size: 12px; color: var(--text-dim); text-align: center; margin-bottom: 16px; line-height: 1.5; }
+
+.qr-badges { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+.qr-badge {
+  background: var(--card); border: 1px solid #2A2A2A; border-radius: 20px;
+  padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--text-dim);
+  display: flex; align-items: center; gap: 5px;
+}
+.qr-badge.red { border-color: rgba(192,57,43,0.3); color: #E74C3C; }
+
+.countdown-label { font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 4px; }
+.countdown {
+  font-family: 'Space Mono', monospace;
+  font-size: 22px; font-weight: 700; color: var(--text);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="outer">
+  <div class="demo-badge">DEMO</div>
+  <div class="progress-dots" id="dots">
+    <div class="pdot active" id="d0"></div>
+    <div class="pdot" id="d1"></div>
+    <div class="pdot" id="d2"></div>
+    <div class="pdot" id="d3"></div>
+    <div class="pdot" id="d4"></div>
+    <div class="pdot" id="d5"></div>
+    <div class="pdot" id="d6"></div>
+  </div>
+
+  <div class="phone" id="phone">
+
+    <!-- ── S0: Challenge Detail ── -->
+    <div class="screen active" id="s0">
+      <div class="sbar"><span class="sbar-time">11:00</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="nav"><button class="back" onclick="goTo(0)">‹</button><span class="nav-title">Challenge</span></div>
+      <div class="scrollable">
+        <div class="cr-banner">
+          <div class="cr-logo-wrap">
+            <div class="cr-logo-text">chicken</div>
+            <div class="cr-logo-big">republic</div>
+          </div>
+          <div class="cr-chicken">🍗</div>
+        </div>
+        <div class="challenge-title">Walk 50,000 Steps in 7 Days with Chicken Republic</div>
+        <div class="desc-card">
+          <div class="desc-label">Challenge Description</div>
+          <div class="desc-text">Walk 50,000 steps over 7 days. Top finisher wins a Free Meal — any combo. Sponsored by Chicken Republic.</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="stat-icon">👥</div>
+            <div class="stat-val">10,932</div>
+            <div class="stat-lbl">Members</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-val">7 days</div>
+            <div class="stat-lbl">Challenge</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-icon">📈</div>
+            <div class="stat-val">10,241</div>
+            <div class="stat-lbl">Active Today</div>
+          </div>
+        </div>
+        <button class="gold-btn" onclick="goTo(1)">Join Challenge</button>
+        <div class="loc-row">
+          <div class="loc-box">
+            <div class="loc-label">📍 Location</div>
+            <div class="loc-val">Chicken Republic</div>
+          </div>
+          <div class="loc-box">
+            <div class="loc-label">📅 Schedule</div>
+            <div class="loc-val">Daily, 06:00</div>
+          </div>
+        </div>
+        <div style="height:16px"></div>
+      </div>
+      <div class="bnav">
+        <div class="bni"><div class="bni-icon">🏠</div>Home</div>
+        <div class="bni"><div class="bni-icon">👥</div>Groups</div>
+        <div class="bni"><div class="bni-icon">📊</div>Tracking</div>
+        <div class="bni active"><div class="bni-icon">🏁</div>Challenges</div>
+        <div class="bni"><div class="bni-icon">👤</div>Profile</div>
+      </div>
+    </div>
+
+    <!-- ── S1: Joined ── -->
+    <div class="screen" id="s1">
+      <div class="sbar"><span class="sbar-time">11:00</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="joined-body">
+        <div class="joined-icon">✅</div>
+        <div class="joined-title">You're In!</div>
+        <div class="joined-sub">You've joined the Chicken Republic 7-Day Step Challenge. Your steps start counting from midnight tonight.</div>
+        <div class="joined-card">
+          <div class="joined-card-row">
+            <span class="jcr-label">Challenge</span>
+            <span class="jcr-val">50,000 Steps / 7 Days</span>
+          </div>
+          <div class="joined-card-row">
+            <span class="jcr-label">Starts</span>
+            <span class="jcr-val">Today, Midnight</span>
+          </div>
+          <div class="joined-card-row">
+            <span class="jcr-label">Reward</span>
+            <span class="jcr-val gold">Free Meal — Any Combo</span>
+          </div>
+          <div class="joined-card-row">
+            <span class="jcr-label">Sponsored by</span>
+            <span class="jcr-val">Chicken Republic</span>
+          </div>
+        </div>
+        <button class="gold-btn" style="margin:0" onclick="goTo(2)">Start Tracking →</button>
+      </div>
+      <div class="bnav">
+        <div class="bni"><div class="bni-icon">🏠</div>Home</div>
+        <div class="bni"><div class="bni-icon">👥</div>Groups</div>
+        <div class="bni active"><div class="bni-icon">📊</div>Tracking</div>
+        <div class="bni"><div class="bni-icon">🏁</div>Challenges</div>
+        <div class="bni"><div class="bni-icon">👤</div>Profile</div>
+      </div>
+    </div>
+
+    <!-- ── S2: Tracking ── -->
+    <div class="screen" id="s2" style="background:#000">
+      <div class="sbar" style="background:#000"><span class="sbar-time">11:03</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="tracking-body">
+        <div style="text-align:center">
+          <div class="duration-label">DURATION</div>
+          <div class="duration-time" id="timer">00:00:00</div>
+        </div>
+        <div class="steps-section">
+          <div class="steps-label">STEPS</div>
+          <div class="steps-count" id="stepCount">0</div>
+        </div>
+        <div class="speed-pill">⚡ <span id="speedVal">0.0</span> km/h</div>
+        <div class="tracking-bottom">
+          <button class="pause-btn" id="pauseBtn" onclick="toggleTracking()">▶ START — Tap to begin</button>
+          <button class="ff-btn" onclick="goTo(3)">⏩ Fast forward → Day 7 Complete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── S3: Leaderboard ── -->
+    <div class="screen" id="s3">
+      <div class="sbar"><span class="sbar-time">11:00</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="lb-banner">
+        <div class="lb-banner-title">Walk 50,000 Steps in 7 Days<br>with Chicken Republic</div>
+      </div>
+      <div class="lb-tabs">
+        <button class="lb-tab">Challenge</button>
+        <button class="lb-tab active">Leaderboard</button>
+        <button class="lb-tab">Members</button>
+      </div>
+      <div class="scrollable">
+        <div class="lb-list">
+          <div class="lb-row">
+            <div class="lb-medal g">🥇</div>
+            <div class="lb-avatar you">F</div>
+            <div class="lb-name">Favour Williams <small style="color:var(--gold)">· YOU</small></div>
+            <div class="lb-steps-wrap"><div class="lb-steps">54,521</div><div class="lb-steps-lbl">/ 50000 steps</div></div>
+          </div>
+          <div class="lb-row">
+            <div class="lb-medal s">🥈</div>
+            <div class="lb-avatar">V</div>
+            <div class="lb-name">Victor<small>38,200 total</small></div>
+            <div class="lb-steps-wrap"><div class="lb-steps">38,200</div><div class="lb-steps-lbl">/ 50000 steps</div></div>
+          </div>
+          <div class="lb-row">
+            <div class="lb-medal b">🥉</div>
+            <div class="lb-avatar">A</div>
+            <div class="lb-name">Amina K.<small>35,800 total</small></div>
+            <div class="lb-steps-wrap"><div class="lb-steps">35,800</div><div class="lb-steps-lbl">/ 50000 steps</div></div>
+          </div>
+          <div class="lb-row">
+            <div class="lb-medal n">#4</div>
+            <div class="lb-avatar">T</div>
+            <div class="lb-name">Tunde O.<small>31,400 total</small></div>
+            <div class="lb-steps-wrap"><div class="lb-steps">31,400</div><div class="lb-steps-lbl">/ 50000 steps</div></div>
+          </div>
+          <div class="lb-row">
+            <div class="lb-medal n">#5</div>
+            <div class="lb-avatar">B</div>
+            <div class="lb-name">Blessing E.<small>28,900 total</small></div>
+            <div class="lb-steps-wrap"><div class="lb-steps">28,900</div><div class="lb-steps-lbl">/ 50000 steps</div></div>
+          </div>
+          <div class="lb-row">
+            <div class="lb-medal n">#6</div>
+            <div class="lb-avatar">K</div>
+            <div class="lb-name">Kachi M.<small>24,100 total</small></div>
+            <div class="lb-steps-wrap"><div class="lb-steps">24,100</div><div class="lb-steps-lbl">/ 50000 steps</div></div>
+          </div>
+        </div>
+        <button class="gold-btn" onclick="goTo(4)">Challenge Complete — Claim Reward 🏆</button>
+        <div style="height:16px"></div>
+      </div>
+      <div class="bnav">
+        <div class="bni active"><div class="bni-icon">🏠</div>Home</div>
+        <div class="bni"><div class="bni-icon">👥</div>Groups</div>
+        <div class="bni"><div class="bni-icon">📊</div>Tracking</div>
+        <div class="bni"><div class="bni-icon">🏁</div>Challenges</div>
+        <div class="bni"><div class="bni-icon">👤</div>Profile</div>
+      </div>
+    </div>
+
+    <!-- ── S4: Challenge Complete ── -->
+    <div class="screen" id="s4">
+      <div class="sbar"><span class="sbar-time">11:00</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="scrollable">
+        <div class="complete-body">
+          <div class="complete-icon">🏆</div>
+          <div class="complete-tag">CHALLENGE COMPLETE</div>
+          <div class="complete-title">You finished #1 out of 10,000</div>
+          <div class="complete-sub">You walked 54,521 steps over 7 days. Chicken Republic reward unlocked.</div>
+          <div class="complete-stats">
+            <div class="cs-box"><div class="cs-val gold">#1</div><div class="cs-lbl">Final Rank</div></div>
+            <div class="cs-box"><div class="cs-val">54,521</div><div class="cs-lbl">Total Steps</div></div>
+            <div class="cs-box"><div class="cs-val">7</div><div class="cs-lbl">Days Done</div></div>
+            <div class="cs-box"><div class="cs-val">~40km</div><div class="cs-lbl">Distance</div></div>
+          </div>
+          <button class="gold-btn" style="margin:8px 0 0; width:100%" onclick="goTo(5)">Claim Reward →</button>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="bni active"><div class="bni-icon">🏠</div>Home</div>
+        <div class="bni"><div class="bni-icon">👥</div>Groups</div>
+        <div class="bni"><div class="bni-icon">📊</div>Tracking</div>
+        <div class="bni"><div class="bni-icon">🏁</div>Challenges</div>
+        <div class="bni"><div class="bni-icon">👤</div>Profile</div>
+      </div>
+    </div>
+
+    <!-- ── S5: Rewards ── -->
+    <div class="screen" id="s5">
+      <div class="sbar"><span class="sbar-time">11:05</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="nav"><button class="back" onclick="goTo(4)">‹</button><span class="nav-title" style="flex:1;text-align:center">Reward</span><div style="width:36px"></div></div>
+      <div class="pts-card">
+        <div class="pts-badge">⭐</div>
+        <div class="pts-info">
+          <div class="pts-label">Total Points</div>
+          <div class="pts-val">500 pts</div>
+          <div class="pts-week">This Week: <span>500 points</span></div>
+        </div>
+      </div>
+      <div class="reward-tabs">
+        <button class="rtab active">Available</button>
+        <button class="rtab">My Rewards</button>
+        <button class="rtab">History</button>
+      </div>
+      <div class="scrollable">
+        <div class="reward-list">
+          <div class="reward-item" onclick="goTo(6)" style="border-color: rgba(201,168,122,0.35); animation: glowPulse 2s ease-in-out infinite;">
+            <div class="reward-item-logo cr">🍗</div>
+            <div style="flex:1">
+              <div class="reward-brand">CHICKEN REPUBLIC</div>
+              <div class="reward-name">Free Meal — Any Combo</div>
+              <div class="reward-pts-row"><span class="reward-star">★</span><span class="reward-pts-val">300 pts</span></div>
+              <div style="font-size:10px; color:var(--gold); font-weight:700; margin-top:5px; letter-spacing:0.3px;">Tap to redeem →</div>
+            </div>
+            <div style="color:var(--gold);font-size:18px">›</div>
+          </div>
+          <div class="reward-item" style="opacity:0.35; pointer-events:none; filter:grayscale(1);">
+            <div class="reward-item-logo dom">🍕</div>
+            <div style="flex:1">
+              <div class="reward-brand">DOMINO'S</div>
+              <div class="reward-name">60% Off Your Next Order</div>
+              <div class="reward-pts-row"><span class="reward-star">★</span><span class="reward-pts-val">200 pts</span></div>
+            </div>
+            <div style="color:#333;font-size:18px">🔒</div>
+          </div>
+          <div class="reward-item" style="opacity:0.35; pointer-events:none; filter:grayscale(1);">
+            <div class="reward-item-logo pv">💰</div>
+            <div style="flex:1">
+              <div class="reward-brand">PIGGYVEST</div>
+              <div class="reward-name">₦5,000 Savings Boost</div>
+              <div class="reward-pts-row"><span class="reward-star">★</span><span class="reward-pts-val">500 pts</span></div>
+            </div>
+            <div style="color:#333;font-size:18px">🔒</div>
+          </div>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="bni"><div class="bni-icon">🏠</div>Home</div>
+        <div class="bni"><div class="bni-icon">👥</div>Groups</div>
+        <div class="bni"><div class="bni-icon">📊</div>Tracking</div>
+        <div class="bni"><div class="bni-icon">🏁</div>Challenges</div>
+        <div class="bni active"><div class="bni-icon">👤</div>Profile</div>
+      </div>
+    </div>
+
+    <!-- ── S6: Reward Detail ── -->
+    <div class="screen" id="s6">
+      <div class="sbar"><span class="sbar-time">11:05</span><div class="sbar-icons">📶 🔋</div></div>
+      <div class="nav"><button class="back" onclick="goTo(5)">‹</button><span class="nav-title">Reward Detail</span></div>
+      <div class="scrollable">
+        <div class="rd-banner">
+          <div class="rd-logo">🍗 chicken republic</div>
+        </div>
+        <div class="rd-body">
+          <div>
+            <div class="rd-brand-tag">CHICKEN REPUBLIC</div>
+            <div class="rd-title">Free Meal — Any Combo</div>
+          </div>
+          <div class="rd-info-card">
+            <div class="rd-info-row">
+              <span class="rd-info-label">Your Rank</span>
+              <span class="rd-info-val gold">#1 of 10,932</span>
+            </div>
+            <div class="rd-info-row">
+              <span class="rd-info-label">Reward Code</span>
+              <span class="rd-info-val gold">CR-1</span>
+            </div>
+            <div class="rd-info-row">
+              <span class="rd-info-label">Points Used</span>
+              <span class="rd-info-val">300 pts</span>
+            </div>
+            <div class="rd-info-row">
+              <span class="rd-info-label">Valid At</span>
+              <span class="rd-info-val">Any CR Outlet</span>
+            </div>
+            <div class="rd-info-row">
+              <span class="rd-info-label">Expires</span>
+              <span class="rd-info-val">10 mins after reveal</span>
+            </div>
+          </div>
+          <div class="rd-notice">
+            <span class="rd-notice-icon">⚠️</span>
+            <span>Do not tap "Reveal QR Code" until you are at a Chicken Republic outlet. <strong style="color:var(--text)">The QR expires 10 minutes after you open it.</strong> One-time use only — this prevents cheating and ensures your reward is protected.</span>
+          </div>
+          <button class="reveal-btn" onclick="openQR()">Reveal QR Code</button>
+        </div>
+      </div>
+
+      <!-- QR Modal -->
+      <div class="qr-overlay" id="qrOverlay">
+        <div class="qr-sheet">
+          <div class="qr-handle" onclick="closeQR()"></div>
+          <div class="qr-sheet-title">FREE MEAL — ANY COMBO</div>
+          <div class="qr-brand">CHICKEN REPUBLIC</div>
+          <div class="qr-box">
+            <svg class="qr-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+              <!-- QR pattern -->
+              <rect width="160" height="160" fill="white"/>
+              <!-- Top-left finder -->
+              <rect x="10" y="10" width="40" height="40" fill="black" rx="4"/>
+              <rect x="15" y="15" width="30" height="30" fill="white" rx="2"/>
+              <rect x="20" y="20" width="20" height="20" fill="black" rx="2"/>
+              <!-- Top-right finder -->
+              <rect x="110" y="10" width="40" height="40" fill="black" rx="4"/>
+              <rect x="115" y="15" width="30" height="30" fill="white" rx="2"/>
+              <rect x="120" y="20" width="20" height="20" fill="black" rx="2"/>
+              <!-- Bottom-left finder -->
+              <rect x="10" y="110" width="40" height="40" fill="black" rx="4"/>
+              <rect x="15" y="115" width="30" height="30" fill="white" rx="2"/>
+              <rect x="20" y="120" width="20" height="20" fill="black" rx="2"/>
+              <!-- Data modules -->
+              <rect x="60" y="10" width="8" height="8" fill="black"/>
+              <rect x="72" y="10" width="8" height="8" fill="black"/>
+              <rect x="84" y="10" width="8" height="8" fill="black"/>
+              <rect x="60" y="22" width="8" height="8" fill="black"/>
+              <rect x="84" y="22" width="8" height="8" fill="black"/>
+              <rect x="72" y="34" width="8" height="8" fill="black"/>
+              <rect x="60" y="46" width="8" height="8" fill="black"/>
+              <rect x="84" y="46" width="8" height="8" fill="black"/>
+              <rect x="10" y="60" width="8" height="8" fill="black"/>
+              <rect x="22" y="60" width="8" height="8" fill="black"/>
+              <rect x="34" y="60" width="8" height="8" fill="black"/>
+              <rect x="10" y="72" width="8" height="8" fill="black"/>
+              <rect x="34" y="72" width="8" height="8" fill="black"/>
+              <rect x="22" y="84" width="8" height="8" fill="black"/>
+              <rect x="10" y="96" width="8" height="8" fill="black"/>
+              <rect x="34" y="96" width="8" height="8" fill="black"/>
+              <rect x="60" y="60" width="8" height="8" fill="black"/>
+              <rect x="72" y="60" width="8" height="8" fill="black"/>
+              <rect x="84" y="60" width="8" height="8" fill="black"/>
+              <rect x="96" y="60" width="8" height="8" fill="black"/>
+              <rect x="60" y="72" width="8" height="8" fill="black"/>
+              <rect x="84" y="72" width="8" height="8" fill="black"/>
+              <rect x="96" y="72" width="8" height="8" fill="black"/>
+              <rect x="60" y="84" width="8" height="8" fill="black"/>
+              <rect x="72" y="84" width="8" height="8" fill="black"/>
+              <rect x="60" y="96" width="8" height="8" fill="black"/>
+              <rect x="84" y="96" width="8" height="8" fill="black"/>
+              <rect x="110" y="60" width="8" height="8" fill="black"/>
+              <rect x="122" y="60" width="8" height="8" fill="black"/>
+              <rect x="134" y="60" width="8" height="8" fill="black"/>
+              <rect x="110" y="72" width="8" height="8" fill="black"/>
+              <rect x="134" y="72" width="8" height="8" fill="black"/>
+              <rect x="122" y="84" width="8" height="8" fill="black"/>
+              <rect x="110" y="96" width="8" height="8" fill="black"/>
+              <rect x="134" y="96" width="8" height="8" fill="black"/>
+              <rect x="60" y="110" width="8" height="8" fill="black"/>
+              <rect x="72" y="110" width="8" height="8" fill="black"/>
+              <rect x="84" y="110" width="8" height="8" fill="black"/>
+              <rect x="96" y="110" width="8" height="8" fill="black"/>
+              <rect x="60" y="122" width="8" height="8" fill="black"/>
+              <rect x="84" y="122" width="8" height="8" fill="black"/>
+              <rect x="72" y="134" width="8" height="8" fill="black"/>
+              <rect x="96" y="134" width="8" height="8" fill="black"/>
+              <rect x="110" y="110" width="8" height="8" fill="black"/>
+              <rect x="134" y="110" width="8" height="8" fill="black"/>
+              <rect x="122" y="122" width="8" height="8" fill="black"/>
+              <rect x="110" y="134" width="8" height="8" fill="black"/>
+              <rect x="134" y="134" width="8" height="8" fill="black"/>
+            </svg>
+          </div>
+          <div class="qr-code-label">CR-1</div>
+          <div class="qr-outlet">Show this at any Chicken Republic outlet<br>Cashier will scan to redeem</div>
+          <div class="qr-badges">
+            <div class="qr-badge red">🔴 One-time use only</div>
+            <div class="qr-badge">📍 In-store only</div>
+          </div>
+          <div class="countdown-label">EXPIRES IN</div>
+          <div class="countdown" id="countdown">10:00</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phone -->
+</div><!-- /outer -->
+
+<script>
+let current = 0;
+const total = 7;
+
+function goTo(n) {
+  document.getElementById('s' + current).classList.remove('active');
+  current = n;
+  document.getElementById('s' + current).classList.add('active');
+  updateDots();
+  if (n === 2) initTracking();
+}
+
+function updateDots() {
+  for (let i = 0; i < total; i++) {
+    const d = document.getElementById('d' + i);
+    d.classList.remove('active', 'done');
+    if (i < current) d.classList.add('done');
+    if (i === current) d.classList.add('active');
+  }
+}
+
+// Tracking
+let tracking = false;
+let timerInterval = null;
+let stepInterval = null;
+let seconds = 0;
+let steps = 0;
+const TARGET_STEPS = 54521;
+
+function initTracking() {
+  seconds = 0; steps = 0; tracking = false;
+  document.getElementById('timer').textContent = '00:00:00';
+  document.getElementById('stepCount').textContent = '0';
+  document.getElementById('speedVal').textContent = '0.0';
+  document.getElementById('pauseBtn').textContent = '▶ START — Tap to begin';
+  clearInterval(timerInterval);
+  clearInterval(stepInterval);
+}
+
+function toggleTracking() {
+  if (!tracking) {
+    tracking = true;
+    document.getElementById('pauseBtn').textContent = '⏸ PAUSE';
+    timerInterval = setInterval(() => {
+      seconds++;
+      const h = String(Math.floor(seconds/3600)).padStart(2,'0');
+      const m = String(Math.floor((seconds%3600)/60)).padStart(2,'0');
+      const s = String(seconds%60).padStart(2,'0');
+      document.getElementById('timer').textContent = h+':'+m+':'+s;
+    }, 100);
+    // Animate steps fast for demo
+    const increment = Math.ceil(TARGET_STEPS / 80);
+    stepInterval = setInterval(() => {
+      steps = Math.min(steps + increment + Math.floor(Math.random()*200), TARGET_STEPS);
+      document.getElementById('stepCount').textContent = steps.toLocaleString();
+      document.getElementById('speedVal').textContent = (3.2 + Math.random()*0.8).toFixed(1);
+      if (steps >= TARGET_STEPS) {
+        clearInterval(stepInterval);
+        document.getElementById('pauseBtn').textContent = '✓ Walk Complete';
+      }
+    }, 80);
+  } else {
+    tracking = false;
+    clearInterval(timerInterval);
+    clearInterval(stepInterval);
+    document.getElementById('pauseBtn').textContent = '▶ Resume';
+    document.getElementById('speedVal').textContent = '0.0';
+  }
+}
+
+// QR
+function openQR() {
+  document.getElementById('qrOverlay').classList.add('open');
+  startCountdown();
+}
+function closeQR() {
+  document.getElementById('qrOverlay').classList.remove('open');
+}
+
+let countdownSecs = 10 * 60;
+let cdInterval = null;
+function startCountdown() {
+  countdownSecs = 10 * 60;
+  clearInterval(cdInterval);
+  cdInterval = setInterval(() => {
+    if (countdownSecs <= 0) {
+      clearInterval(cdInterval);
+      document.getElementById('countdown').textContent = 'EXPIRED';
+      document.getElementById('countdown').style.color = '#E74C3C';
+      return;
+    }
+    countdownSecs--;
+    const m = String(Math.floor(countdownSecs/60)).padStart(2,'0');
+    const s = String(countdownSecs%60).padStart(2,'0');
+    document.getElementById('countdown').textContent = m+':'+s;
+    if (countdownSecs <= 60) document.getElementById('countdown').style.color = '#E74C3C';
+  }, 1000);
+}
+
+updateDots();
+</script>
+</body>
+</html>
