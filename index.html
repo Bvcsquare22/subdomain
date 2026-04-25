@@ -1409,6 +1409,7 @@ const SCREENS = [
   { id: 'caption', type: 'caption' },
   { id: 'challenge', type: 'app', nav: 'challenges' },
   { id: 'join', type: 'app', nav: 'challenges' },
+  { id: 'tracking', type: 'app', nav: 'challenges' },
   { id: 'leaderboard', type: 'app', nav: 'challenges' },
   { id: 'completion', type: 'app', nav: 'challenges' },
   { id: 'rewards', type: 'app', nav: 'challenges' },
@@ -1420,6 +1421,12 @@ const SCREENS = [
 ];
 
 let idx = 0;
+let _activeTimerInt = null;
+let _activeStepInt = null;
+function _clearTrackingIntervals() {
+  if (_activeTimerInt) { clearInterval(_activeTimerInt); _activeTimerInt = null; }
+  if (_activeStepInt) { clearInterval(_activeStepInt); _activeStepInt = null; }
+}
 
 function updateProgress() {
   const pct = ((idx + 1) / SCREENS.length) * 100;
@@ -1427,6 +1434,7 @@ function updateProgress() {
 }
 
 function render() {
+  _clearTrackingIntervals();
   updateProgress();
   const s = SCREENS[idx];
   const screen = document.getElementById('screen');
@@ -1445,6 +1453,79 @@ function render() {
   const replay = document.getElementById('replayBtn');
   if (replay) {
     replay.addEventListener('click', e => { e.stopPropagation(); idx = 0; render(); });
+  }
+
+  // Tracking screen: wire up START and Fast Forward buttons
+  if (s.id === 'tracking') {
+    var timerRunning = false;
+    var timerSecs = 0;
+    var timerInt = null;
+    var stepInt = null;
+    var currentSteps = 0;
+    var TARGET_STEPS = 54521;
+    var STEP_INCREMENT = 3; // steps per tick at ~800ms = realistic walking cadence display
+
+    var startBtn = document.getElementById('startTrackingBtn');
+    var startBtnLabel = document.getElementById('startBtnLabel');
+    var startBtnIcon = document.getElementById('startBtnIcon');
+
+    if (startBtn) {
+      startBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (timerRunning) {
+          // Pause
+          timerRunning = false;
+          clearInterval(timerInt);
+          clearInterval(stepInt);
+          startBtnIcon.textContent = '▶';
+          startBtnLabel.textContent = 'RESUME';
+        } else {
+          // Start or resume
+          timerRunning = true;
+          startBtnIcon.textContent = '⏸';
+          startBtnLabel.textContent = 'PAUSE';
+
+          timerInt = setInterval(function() {
+            timerSecs++;
+            var h = Math.floor(timerSecs / 3600);
+            var m = Math.floor((timerSecs % 3600) / 60);
+            var sc = timerSecs % 60;
+            var d = document.getElementById('timer-display');
+            if (d) d.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(sc).padStart(2,'0');
+          }, 1000);
+
+          _activeStepInt = stepInt = setInterval(function() {
+            if (currentSteps >= TARGET_STEPS) {
+              clearInterval(stepInt);
+              return;
+            }
+            currentSteps = Math.min(currentSteps + STEP_INCREMENT + Math.floor(Math.random() * 3), TARGET_STEPS);
+            var sd = document.getElementById('step-display');
+            if (sd) sd.textContent = currentSteps.toLocaleString();
+            var spd = document.getElementById('speed-display');
+            var speeds = ['3.2','3.5','3.8','4.1','4.4','3.9','4.2','3.6'];
+            if (spd) spd.textContent = speeds[Math.floor(Math.random() * speeds.length)];
+          }, 800);
+        }
+      });
+
+      // Auto-start after a short delay so the screen feels alive
+      setTimeout(function() {
+        if (!timerRunning && document.getElementById('startTrackingBtn')) {
+          startBtn.click();
+        }
+      }, 600);
+    }
+
+    var ffBtn = document.getElementById('fastForwardBtn');
+    if (ffBtn) {
+      ffBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearInterval(timerInt);
+        clearInterval(stepInt);
+        next();
+      });
+    }
   }
 }
 
@@ -1609,6 +1690,40 @@ const APP_SCREENS = {
       </div>
       <button class="cta-btn" style="margin-bottom:12px;">START TRACKING <span class="arr">→</span></button>
       <div style="font-size:10px;letter-spacing:2px;color:var(--muted);">TAP TO FAST FORWARD ▼</div>
+    </div>`,
+
+  tracking: () => `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;height:100%;padding:28px 24px 24px;text-align:center;background:var(--bg);">
+
+      <div style="display:flex;flex-direction:column;align-items:center;width:100%;flex:1;">
+
+        <div style="display:inline-flex;align-items:center;gap:8px;background:#0F2A1A;border:1px solid #1A4D2E;border-radius:999px;padding:8px 20px;margin-bottom:36px;">
+          <div style="width:9px;height:9px;background:#4ADE80;border-radius:50%;flex-shrink:0;animation:live-pulse 1.5s infinite;"></div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;color:#4ADE80;">TRACKING</span>
+        </div>
+
+        <div style="font-size:11px;letter-spacing:3px;color:var(--muted);font-weight:700;margin-bottom:12px;">DURATION</div>
+        <div id="timer-display" style="font-family:monospace;font-size:clamp(48px,12vw,72px);font-weight:700;color:var(--cream);letter-spacing:2px;line-height:1;margin-bottom:56px;">00:00:00</div>
+
+        <div style="font-size:11px;letter-spacing:3px;color:var(--muted);font-weight:700;margin-bottom:12px;">STEPS</div>
+        <div id="step-display" style="font-size:clamp(64px,18vw,96px);font-weight:700;color:var(--cream);line-height:1;margin-bottom:48px;">0</div>
+
+        <div style="display:inline-flex;align-items:center;gap:10px;background:#1A1A1A;border:1px solid var(--border);border-radius:14px;padding:14px 28px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="speed-display" style="font-size:17px;font-weight:700;color:var(--cream);">0.0</span>
+          <span style="font-size:13px;color:var(--muted);">km/h</span>
+        </div>
+      </div>
+
+      <div style="width:100%;margin-top:24px;">
+        <button id="startTrackingBtn" style="width:100%;padding:18px;background:var(--cream);border:none;border-radius:16px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--bg);cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px;">
+          <span id="startBtnIcon">▶</span> <span id="startBtnLabel">PAUSE</span>
+        </button>
+        <button id="fastForwardBtn" class="cta-btn" style="width:100%;font-size:15px;letter-spacing:1.5px;">
+          ⏩ FAST FORWARD → DAY 7 COMPLETE
+        </button>
+      </div>
+
     </div>`,
 
   leaderboard: () => `
